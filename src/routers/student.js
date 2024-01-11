@@ -2,20 +2,8 @@ const express = require("express");
 const router = new express.Router();
 const Student = require("../models/students");
 
-// create a new students
-// by promise method
-// app.post("/students",(req,res) => {
-//     console.log(req.body);
-//     const user = new Student(req.body);
-    
-//     user.save().then(()=>{
-//         res.status(201).send(user);
-//     }).catch((e)=>{
-//         res.status(400).send(e);
-//     })
-// })
 
-// by async/await
+// async/await
 router.post("/students", async(req,res) => {
     try{
         const user = new Student(req.body);
@@ -27,15 +15,68 @@ router.post("/students", async(req,res) => {
     }
 })
 
-// read the data of registered students
-router.get("/students",async (req, res)=>{
-    try{
-       const studentsData = await Student.find();
-       res.send(studentsData);
-    }catch(e){
-            res.send(e);
+// read the data of registered students with pagination
+// router.get("/students", async (req, res) => {
+//     try {
+//       const page = parseInt(req.query.page) || 1;
+//       const limit = parseInt(req.query.limit) || 3;
+  
+//       const startIndex = (page - 1) * limit;
+  
+//       const studentsData = await Student.find().skip(startIndex).limit(limit);
+//       const totalDocuments = await Student.countDocuments();
+  
+//       const endIndex = Math.min(startIndex + limit, totalDocuments);
+  
+//       const results = {
+//         totalDocuments: totalDocuments,
+//         currentPage: page,
+//         totalPages: Math.ceil(totalDocuments / limit),
+//         pageSize: limit,
+//         data: studentsData,
+//       };
+  
+//       if (endIndex < totalDocuments) {
+//         results.next = {
+//           page: page + 1,
+//         };
+//       }
+  
+//       if (startIndex > 0) {
+//         results.previous = {
+//           page: page - 1,
+//         };
+//       }
+  
+//       res.send(results);
+//     } catch (e) {
+//       res.status(500).send(e);
+//     }
+//   });
+// read the data of registered students with pagination
+router.get("/students", async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 0;
+      const limit = parseInt(req.query.limit) || 5;
+  
+      const startIndex = page * limit;
+  
+      const studentsData = await Student.find().skip(startIndex).limit(limit);
+      const totalDocuments = await Student.countDocuments();
+      const pageLength = studentsData.length;
+
+      res.send({
+        totalDocuments:totalDocuments,
+        pageLength: pageLength,
+        data: studentsData,
+      });
+    } 
+    catch (e) {
+      res.status(500).send(e);
     }
-})
+  });
+  
+  
 
 // get the individual student using id
 router.get("/students/:id", async (req, res)=>{
